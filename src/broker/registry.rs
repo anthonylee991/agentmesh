@@ -12,15 +12,14 @@ pub struct AgentEntry {
 }
 
 /// In-memory registry of connected agents.
+#[derive(Default)]
 pub struct AgentRegistry {
     agents: HashMap<String, AgentEntry>,
 }
 
 impl AgentRegistry {
     pub fn new() -> Self {
-        Self {
-            agents: HashMap::new(),
-        }
+        Self::default()
     }
 
     /// Register a new agent. Returns the assigned agent_id.

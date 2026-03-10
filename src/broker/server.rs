@@ -99,7 +99,7 @@ async fn handle_agent_connection(stream: WebSocket, state: Arc<BrokerState>) {
     // Spawn a task to forward messages from the channel to the WebSocket
     let send_task = tokio::spawn(async move {
         while let Some(msg) = rx.recv().await {
-            if ws_sender.send(WsMessage::Text(msg.into())).await.is_err() {
+            if ws_sender.send(WsMessage::Text(msg)).await.is_err() {
                 break;
             }
         }

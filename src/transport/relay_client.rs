@@ -79,7 +79,7 @@ impl RelayClient {
             loop {
                 interval.tick().await;
                 let mut w = write_hb.lock().await;
-                if w.send(Message::Ping(vec![].into())).await.is_err() {
+                if w.send(Message::Ping(vec![])).await.is_err() {
                     break;
                 }
             }
@@ -93,7 +93,7 @@ impl RelayClient {
                 }
                 Ok(Message::Ping(_)) => {
                     let mut w = write.lock().await;
-                    let _ = w.send(Message::Pong(vec![].into())).await;
+                    let _ = w.send(Message::Pong(vec![])).await;
                 }
                 Ok(Message::Close(_)) => break,
                 Err(e) => {

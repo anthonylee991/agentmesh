@@ -17,7 +17,6 @@ use super::tools;
 const SERVER_NAME: &str = "agentmesh-mcp";
 const SERVER_VERSION: &str = env!("CARGO_PKG_VERSION");
 const PROTOCOL_VERSION: &str = "2024-11-05";
-const DEFAULT_BROKER_URL: &str = "ws://127.0.0.1:7777/ws";
 
 #[derive(Serialize, Deserialize)]
 pub struct MCPMessage {
@@ -160,11 +159,7 @@ impl MeshMCPServer {
         // Spawn task: forward outgoing messages to WS
         tokio::spawn(async move {
             while let Some(msg) = broker_rx.recv().await {
-                if ws_write
-                    .send(TungsteniteMessage::Text(msg.into()))
-                    .await
-                    .is_err()
-                {
+                if ws_write.send(TungsteniteMessage::Text(msg)).await.is_err() {
                     break;
                 }
             }

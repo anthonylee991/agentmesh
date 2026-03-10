@@ -5,7 +5,7 @@ use std::path::PathBuf;
 const DEFAULT_BROKER_PORT: u16 = 7777;
 const DEFAULT_BROKER_HOST: &str = "127.0.0.1";
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct AppConfig {
     #[serde(default)]
     pub broker: BrokerConfig,
@@ -58,7 +58,7 @@ pub struct ProConfig {
 }
 
 /// Per-project config stored in `<project>/.agentmesh/config.toml`.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct ProjectConfig {
     #[serde(default)]
     pub project: ProjectInfo,
@@ -156,26 +156,6 @@ impl Default for ProjectProxyConfig {
             max_context_chars: default_max_context(),
             provider: None,
             model: None,
-        }
-    }
-}
-
-impl Default for ProjectConfig {
-    fn default() -> Self {
-        Self {
-            project: ProjectInfo::default(),
-            proxy: ProjectProxyConfig::default(),
-            agent: ProjectAgentConfig::default(),
-        }
-    }
-}
-
-impl Default for AppConfig {
-    fn default() -> Self {
-        Self {
-            broker: BrokerConfig::default(),
-            proxy: ProxyConfig::default(),
-            pro: ProConfig::default(),
         }
     }
 }
