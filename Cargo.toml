@@ -1,0 +1,66 @@
+[package]
+name = "agentmesh"
+version = "0.1.0"
+edition = "2021"
+description = "Agent-to-agent messaging system for AI agents"
+
+[dependencies]
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+futures = "0.3"
+tokio-stream = "0.1"
+
+# Web framework (broker server)
+axum = { version = "0.7", features = ["ws"] }
+tower-http = { version = "0.6", features = ["cors", "trace"] }
+
+# WebSocket client (MCP server -> broker, relay client)
+tokio-tungstenite = { version = "0.24", features = ["native-tls"] }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# CLI
+clap = { version = "4", features = ["derive"] }
+
+# Unique IDs
+uuid = { version = "1", features = ["v4", "serde"] }
+
+# Timestamps
+chrono = { version = "0.4", features = ["serde"] }
+
+# Error handling
+anyhow = "1"
+
+# HTTP client (proxy agent LLM calls)
+reqwest = { version = "0.12", features = ["json"] }
+
+# Config file parsing
+toml = "0.8"
+
+# Home directory
+dirs-next = "2"
+
+# Async trait
+async-trait = "0.1"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# SSE streaming
+async-stream = "0.3"
+
+[lib]
+name = "agentmesh"
+path = "src/lib.rs"
+
+[[bin]]
+name = "agentmesh"
+path = "src/main.rs"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+strip = true

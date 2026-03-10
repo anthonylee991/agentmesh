@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+    tags: ["v*"]
+  pull_request:
+    branches: [main, master]
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+      - name: Check formatting
+        run: cargo fmt -- --check
+      - name: Clippy
+        run: cargo clippy -- -D warnings
+      - name: Run tests
+        run: cargo test
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest
+            rust_target: aarch64-apple-darwin
+            dist_name: agentmesh-mac-aarch64
+          - platform: macos-15-intel
+            rust_target: x86_64-apple-darwin
+            dist_name: agentmesh-mac-x86_64
+          - platform: windows-latest
+            rust_target: x86_64-pc-windows-msvc
+            dist_name: agentmesh-windows
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Windows: fix broken MSVC link.exe path (actions/runner-images#12432)
+      - name: Configure lld-link for Windows
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          mkdir -p .cargo
+          cat > .cargo/config.toml << 'EOF'
+          [target.x86_64-pc-windows-msvc]
+          linker = "lld-link"
+          EOF
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust_target }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+
+      - name: Build release binary
+        run: cargo build --release --target ${{ matrix.rust_target }}
+
+      - name: Package distribution (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          DIST="${{ matrix.dist_name }}"
+          mkdir -p "${DIST}"
+          cp "target/${{ matrix.rust_target }}/release/agentmesh" "${DIST}/"
+          cp README.md LICENSE "${DIST}/"
+          zip -r "${DIST}.zip" "${DIST}/"
+
+      - name: Package distribution (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $DIST = "${{ matrix.dist_name }}"
+          New-Item -ItemType Directory -Force -Path "$DIST" | Out-Null
+          Copy-Item "target\${{ matrix.rust_target }}\release\agentmesh.exe" "$DIST\"
+          Copy-Item "README.md" "$DIST\"
+          Copy-Item "LICENSE" "$DIST\"
+          Compress-Archive -Path "$DIST\*" -DestinationPath "$DIST.zip" -Force
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          TAG="${{ github.ref_name }}"
+          gh release create "$TAG" "${{ matrix.dist_name }}.zip" \
+            --title "AgentMesh $TAG" \
+            --notes "Release $TAG" \
+            --latest \
+          || gh release upload "$TAG" "${{ matrix.dist_name }}.zip" --clobber

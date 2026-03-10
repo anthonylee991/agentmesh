@@ -1,0 +1,20 @@
+{
+  "name": "agentmesh-client",
+  "version": "0.1.0",
+  "description": "Node.js client for AgentMesh agent-to-agent messaging",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.5.0",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  }
+}

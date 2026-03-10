@@ -1,0 +1,29 @@
+# Rust
+/target
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Config with secrets
+.agentmesh/config.toml
+
+# Node
+node_modules/
+dist/
+relay/.env
+
+# Python
+__pycache__/
+*.egg-info/
+clients/python/dist/
+
+# Claude Code / CGC (local dev tools)
+.claude/
+.cgc/
