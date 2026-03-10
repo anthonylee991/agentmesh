@@ -144,7 +144,9 @@ impl MeshMCPServer {
             }
         }
 
-        anyhow::bail!("Could not connect to AgentMesh broker after 20 attempts. Is port 7777 available?")
+        anyhow::bail!(
+            "Could not connect to AgentMesh broker after 20 attempts. Is port 7777 available?"
+        )
     }
 
     /// Establish WebSocket connection to broker and spawn read/write tasks.
@@ -201,8 +203,7 @@ impl MeshMCPServer {
                                     drop(inbox);
                                 }
                             }
-                            MeshOperation::DiscoverResult(_)
-                            | MeshOperation::StatusResult(_) => {
+                            MeshOperation::DiscoverResult(_) | MeshOperation::StatusResult(_) => {
                                 let _ = response_tx.send(op);
                             }
                             MeshOperation::Error(_) => {
@@ -414,7 +415,11 @@ impl MeshMCPServer {
             .map(|arr| {
                 arr.iter()
                     .filter_map(|v| v.as_str())
-                    .map(|s| serde_json::from_value(json!(s)).unwrap_or(crate::protocol::identity::AgentCapability::Custom(s.to_string())))
+                    .map(|s| {
+                        serde_json::from_value(json!(s)).unwrap_or(
+                            crate::protocol::identity::AgentCapability::Custom(s.to_string()),
+                        )
+                    })
                     .collect()
             })
             .unwrap_or_default();
@@ -485,11 +490,7 @@ impl MeshMCPServer {
                     for agent in &payload.agents {
                         text.push_str(&format!(
                             "- **{}** (project: {}, platform: {:?}, status: {:?})\n  ID: {}\n",
-                            agent.name,
-                            agent.project,
-                            agent.platform,
-                            agent.status,
-                            agent.agent_id
+                            agent.name, agent.project, agent.platform, agent.status, agent.agent_id
                         ));
                     }
                     self.text_result(&text)
@@ -513,10 +514,7 @@ impl MeshMCPServer {
             .ok_or_else(|| anyhow::anyhow!("Missing 'question' parameter"))?;
 
         let agent_id = self.agent_id.lock().await;
-        let from = agent_id
-            .as_deref()
-            .unwrap_or("unregistered")
-            .to_string();
+        let from = agent_id.as_deref().unwrap_or("unregistered").to_string();
         drop(agent_id);
 
         let mut message = MeshMessage::ask_with_ttl(&from, to, question, self.message_ttl_secs);
@@ -558,7 +556,9 @@ impl MeshMCPServer {
             ));
         }
 
-        text.push_str("\nUse mesh_respond with the message ID, or call mesh_inbox_N to respond/acknowledge.");
+        text.push_str(
+            "\nUse mesh_respond with the message ID, or call mesh_inbox_N to respond/acknowledge.",
+        );
         self.text_result(&text)
     }
 
@@ -585,15 +585,18 @@ impl MeshMCPServer {
         drop(inbox);
 
         if original.msg_type == MessageType::Ask {
-            let response_text = args["response"]
-                .as_str()
-                .unwrap_or("(acknowledged)");
+            let response_text = args["response"].as_str().unwrap_or("(acknowledged)");
 
             let agent_id = self.agent_id.lock().await;
             let from = agent_id.as_deref().unwrap_or("unregistered").to_string();
             drop(agent_id);
 
-            let response_msg = MeshMessage::response_with_ttl(&from, &original, response_text, self.message_ttl_secs);
+            let response_msg = MeshMessage::response_with_ttl(
+                &from,
+                &original,
+                response_text,
+                self.message_ttl_secs,
+            );
             let op = MeshOperation::Send(response_msg);
             let json_str = serde_json::to_string(&op)?;
             self.send_to_broker(&json_str).await?;
@@ -603,15 +606,11 @@ impl MeshMCPServer {
             MessageType::Ask => {
                 self.text_result(&format!("Response sent to agent '{}'.", original.from))
             }
-            MessageType::Response => {
-                self.text_result(&format!(
-                    "Response from '{}': {}",
-                    original.from, original.content.text
-                ))
-            }
-            _ => {
-                self.text_result(&format!("Message acknowledged: {}", original.content.text))
-            }
+            MessageType::Response => self.text_result(&format!(
+                "Response from '{}': {}",
+                original.from, original.content.text
+            )),
+            _ => self.text_result(&format!("Message acknowledged: {}", original.content.text)),
         }
     }
 
@@ -641,7 +640,8 @@ impl MeshMCPServer {
         write_inbox_signal(&id_str, &inbox);
         drop(inbox);
 
-        let response_msg = MeshMessage::response_with_ttl(&from, &original, response_text, self.message_ttl_secs);
+        let response_msg =
+            MeshMessage::response_with_ttl(&from, &original, response_text, self.message_ttl_secs);
         let op = MeshOperation::Send(response_msg);
         let json_str = serde_json::to_string(&op)?;
         self.send_to_broker(&json_str).await?;

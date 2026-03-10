@@ -19,15 +19,13 @@ pub trait LlmProvider: Send + Sync {
 }
 
 /// Create an LLM provider from config strings.
-pub fn create_provider(
-    provider: &str,
-    api_key: &str,
-    model: &str,
-) -> Result<Box<dyn LlmProvider>> {
+pub fn create_provider(provider: &str, api_key: &str, model: &str) -> Result<Box<dyn LlmProvider>> {
     match provider {
         "anthropic" => Ok(Box::new(anthropic::AnthropicProvider::new(api_key, model))),
         "openai" => Ok(Box::new(openai::OpenAIProvider::new(api_key, model))),
-        "openrouter" => Ok(Box::new(openrouter::OpenRouterProvider::new(api_key, model))),
+        "openrouter" => Ok(Box::new(openrouter::OpenRouterProvider::new(
+            api_key, model,
+        ))),
         _ => anyhow::bail!("Unknown LLM provider: {}", provider),
     }
 }

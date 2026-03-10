@@ -167,9 +167,8 @@ async fn handle_agent_connection(stream: WebSocket, state: Arc<BrokerState>) {
                         );
                         drop(registry);
 
-                        let response = MeshOperation::DiscoverResult(DiscoverResultPayload {
-                            agents,
-                        });
+                        let response =
+                            MeshOperation::DiscoverResult(DiscoverResultPayload { agents });
                         if let Ok(json) = serde_json::to_string(&response) {
                             let _ = tx.send(json);
                         }
@@ -184,8 +183,7 @@ async fn handle_agent_connection(stream: WebSocket, state: Arc<BrokerState>) {
                         tokio::spawn(async move {
                             match router.route(message).await {
                                 Ok(Some(response)) => {
-                                    let deliver =
-                                        MeshOperation::Deliver(response);
+                                    let deliver = MeshOperation::Deliver(response);
                                     if let Ok(json) = serde_json::to_string(&deliver) {
                                         let _ = tx_clone.send(json);
                                     }

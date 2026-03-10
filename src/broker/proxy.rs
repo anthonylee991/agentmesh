@@ -23,10 +23,7 @@ impl ProxyAgent {
         message: &MeshMessage,
         project_path: Option<&str>,
     ) -> Result<MeshMessage> {
-        let project = message
-            .project
-            .as_deref()
-            .unwrap_or(&message.to);
+        let project = message.project.as_deref().unwrap_or(&message.to);
 
         let context = match project_path {
             Some(path) => self.gather_context(path).await?,
@@ -122,7 +119,10 @@ impl ProxyAgent {
         // Read configured context files
         for file in &project_config.proxy.context_files {
             let file_path = root.join(file);
-            if let Some(content) = self.read_file_safe(&file_path, max_chars - total_chars).await {
+            if let Some(content) = self
+                .read_file_safe(&file_path, max_chars - total_chars)
+                .await
+            {
                 context.push_str(&format!("### {}\n```\n{}\n```\n\n", file, content));
                 total_chars = context.len();
                 if total_chars >= max_chars {
@@ -144,10 +144,7 @@ impl ProxyAgent {
                 .read_file_safe(&claude_md, max_chars - total_chars)
                 .await
             {
-                context.push_str(&format!(
-                    "### .claude/CLAUDE.md\n```\n{}\n```\n\n",
-                    content
-                ));
+                context.push_str(&format!("### .claude/CLAUDE.md\n```\n{}\n```\n\n", content));
                 total_chars = context.len();
             }
         }
@@ -163,7 +160,10 @@ impl ProxyAgent {
         }
 
         if context.is_empty() {
-            context = format!("No readable files found in project directory '{}'.", project_path);
+            context = format!(
+                "No readable files found in project directory '{}'.",
+                project_path
+            );
         }
 
         Ok(context)

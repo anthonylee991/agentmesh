@@ -33,15 +33,15 @@ impl AgentRegistry {
             payload.name,
             payload.project,
             payload.project_path,
-            payload.platform.unwrap_or(AgentPlatform::Custom("unknown".to_string())),
+            payload
+                .platform
+                .unwrap_or(AgentPlatform::Custom("unknown".to_string())),
             payload.capabilities,
         );
 
         let agent_id = identity.agent_id.clone();
-        self.agents.insert(
-            agent_id.clone(),
-            AgentEntry { identity, tx },
-        );
+        self.agents
+            .insert(agent_id.clone(), AgentEntry { identity, tx });
 
         tracing::info!(agent_id = %agent_id, "Agent registered");
         agent_id

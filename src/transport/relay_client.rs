@@ -112,7 +112,11 @@ impl RelayClient {
     async fn handle_relay_message(
         &self,
         text: &str,
-        _write: &Arc<Mutex<impl futures::Sink<Message, Error = tokio_tungstenite::tungstenite::Error> + Unpin>>,
+        _write: &Arc<
+            Mutex<
+                impl futures::Sink<Message, Error = tokio_tungstenite::tungstenite::Error> + Unpin,
+            >,
+        >,
     ) {
         let msg: serde_json::Value = match serde_json::from_str(text) {
             Ok(v) => v,
